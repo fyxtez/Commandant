@@ -1,0 +1,60 @@
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap");
+
+:root {
+  --bg: #0b0d0f;
+  --panel: #14171a;
+  --panel-hover: #181c1f;
+  --border: #262b30;
+  --border-soft: #1d2125;
+  --text: #e8eaed;
+  --text-dim: #8a9099;
+  --text-faint: #545a61;
+  --signal: #ffb454;
+  --signal-dim: #6b5430;
+  --ok: #4ade80;
+  --ok-dim: #2a4a35;
+  --danger: #e8543c;
+  --danger-dim: #4a2a23;
+  --font-mono: "JetBrains Mono", "SF Mono", Consolas, monospace;
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  -webkit-font-smoothing: antialiased;
+  overscroll-behavior: none;
+}
+
+button {
+  font-family: var(--font-mono);
+  cursor: pointer;
+}
+
+::selection {
+  background: var(--signal-dim);
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}

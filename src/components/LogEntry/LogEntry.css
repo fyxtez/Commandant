@@ -1,0 +1,65 @@
+.log-entry {
+  display: flex;
+  gap: 10px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border-soft);
+  font-size: 12px;
+}
+
+.log-entry:last-child {
+  border-bottom: none;
+}
+
+.log-entry__marker {
+  flex-shrink: 0;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  margin-top: 4px;
+}
+
+.log-entry__marker--ok {
+  background: var(--ok);
+  box-shadow: 0 0 5px var(--ok);
+}
+
+.log-entry__marker--danger {
+  background: var(--danger);
+  box-shadow: 0 0 5px var(--danger);
+}
+
+.log-entry__marker--idle {
+  background: var(--text-faint);
+}
+
+.log-entry__marker--info {
+  background: var(--signal);
+  box-shadow: 0 0 5px var(--signal);
+}
+
+.log-entry__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.log-entry__action {
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+.log-entry__action--ok     { color: var(--ok); }
+.log-entry__action--danger { color: var(--danger); }
+.log-entry__action--idle   { color: var(--text-dim); }
+.log-entry__action--info   { color: var(--signal); }
+
+.log-entry__meta {
+  color: var(--text-faint);
+  margin-top: 2px;
+}
+
+.log-entry__error {
+  color: var(--danger);
+  margin-top: 4px;
+  word-break: break-word;
+  line-height: 1.45;
+}

@@ -1,0 +1,72 @@
+.service-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  gap: 12px;
+}
+
+.service-card:hover {
+  background: var(--panel-hover);
+  border-color: var(--text-faint);
+}
+
+.service-card:active {
+  transform: translateY(1px);
+}
+
+.service-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.service-card__label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.service-card__unit {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+/* status pill */
+
+.service-card__pill {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 3px 8px;
+  border-radius: 100px;
+  border: 1px solid transparent;
+}
+
+.service-card__pill--ok {
+  color: var(--ok);
+  background: var(--ok-dim);
+}
+
+.service-card__pill--danger {
+  color: var(--danger);
+  background: var(--danger-dim);
+}
+
+.service-card__pill--idle {
+  color: var(--text-faint);
+  background: transparent;
+  border-color: var(--border);
+}
