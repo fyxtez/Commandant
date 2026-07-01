@@ -52,7 +52,7 @@ Built for developers and indie hackers who self-host on a VPS and need a reliabl
 ### Desktop (dev)
 
 ```bash
-git clone https://github.com/yourusername/commandant
+git clone https://github.com/fyxtez/commandant
 cd commandant
 npm install
 npm run tauri dev
