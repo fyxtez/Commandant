@@ -23,5 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
+collect_rs.sh
 collect_tsx.sh
 src-tauri/gen

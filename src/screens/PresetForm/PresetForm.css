@@ -1,0 +1,15 @@
+.preset-form {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 16px;
+}
+
+.preset-form__actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.preset-form__actions .btn {
+  flex: 1;
+}

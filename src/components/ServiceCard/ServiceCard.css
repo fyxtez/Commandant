@@ -8,8 +8,8 @@
   padding: 14px 16px;
   margin-bottom: 10px;
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
   gap: 12px;
+  transition: border-color 0.15s, background 0.15s;
 }
 
 .service-card:hover {
@@ -42,31 +42,43 @@
   color: var(--text-faint);
 }
 
-/* status pill */
+/* status indicator */
 
-.service-card__pill {
+.service-card__status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
   flex-shrink: 0;
+}
+
+.service-card__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.service-card__dot--ok {
+  background: var(--ok);
+  box-shadow: 0 0 5px var(--ok);
+}
+
+.service-card__dot--danger {
+  background: var(--danger);
+  box-shadow: 0 0 5px var(--danger);
+}
+
+.service-card__dot--idle {
+  background: var(--text-faint);
+}
+
+.service-card__status-label {
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  padding: 3px 8px;
-  border-radius: 100px;
-  border: 1px solid transparent;
 }
 
-.service-card__pill--ok {
-  color: var(--ok);
-  background: var(--ok-dim);
-}
-
-.service-card__pill--danger {
-  color: var(--danger);
-  background: var(--danger-dim);
-}
-
-.service-card__pill--idle {
-  color: var(--text-faint);
-  background: transparent;
-  border-color: var(--border);
-}
+.service-card__status--ok .service-card__status-label    { color: var(--ok); }
+.service-card__status--danger .service-card__status-label { color: var(--danger); }
+.service-card__status--idle .service-card__status-label   { color: var(--text-faint); }

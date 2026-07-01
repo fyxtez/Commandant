@@ -1,4 +1,6 @@
-export interface HostConfig {
+export interface Preset {
+  id: string;
+  name: string;
   host: string;
   port: number;
   username: string;
@@ -8,7 +10,7 @@ export interface HostConfig {
 export type ActionKind = "start" | "stop" | "restart" | "logs";
 
 export interface ActionLogEntry {
-  timestamp: string; // ISO string
+  timestamp: string;
   action: ActionKind;
   success: boolean;
   exit_code: number | null;
@@ -19,5 +21,6 @@ export interface ServiceEntry {
   id: string;
   label: string;
   unit_name: string;
+  preset_id: string;
   log: ActionLogEntry[];
 }

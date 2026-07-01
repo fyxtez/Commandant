@@ -19,6 +19,14 @@
   margin-bottom: 22px;
 }
 
+.service-detail__title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
 .service-detail__label {
   margin: 0;
   font-size: 18px;
@@ -26,10 +34,56 @@
   color: var(--text);
 }
 
+.service-detail__status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+}
+
+.service-detail__status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.service-detail__status--ok { color: var(--ok); }
+.service-detail__status--danger { color: var(--danger); }
+.service-detail__status--idle { color: var(--text-faint); }
+
+.service-detail__status-dot--ok {
+  background: var(--ok);
+  box-shadow: 0 0 5px var(--ok);
+}
+
+.service-detail__status-dot--danger {
+  background: var(--danger);
+  box-shadow: 0 0 5px var(--danger);
+}
+
+.service-detail__status-dot--idle {
+  background: var(--text-faint);
+}
+
 .service-detail__unit {
-  margin: 4px 0 0;
+  margin: 0;
   font-size: 12px;
   color: var(--text-faint);
+}
+
+.service-detail__preset {
+  margin: 3px 0 0;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.service-detail__preset--missing {
+  color: var(--danger);
 }
 
 /* action buttons */
@@ -90,7 +144,7 @@
   background: var(--signal-dim);
 }
 
-/* log buttons row */
+/* log buttons */
 
 .log-btn-row {
   display: grid;
@@ -117,14 +171,19 @@
   transition: border-color 0.15s, color 0.15s;
 }
 
-.logs-btn:hover {
+.logs-btn:hover:not(:disabled) {
   border-color: var(--signal-dim);
   color: var(--signal);
 }
 
-.logs-btn--live:hover {
+.logs-btn--live:hover:not(:disabled) {
   border-color: var(--ok-dim);
   color: var(--ok);
+}
+
+.logs-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 .logs-btn__pulse {
@@ -132,7 +191,6 @@
   height: 6px;
   border-radius: 50%;
   background: var(--ok);
-  box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5);
   animation: pulse-ring 1.8s ease-in-out infinite;
 }
 
@@ -181,7 +239,30 @@
   color: var(--text-faint);
 }
 
-/* shared modal styles */
+/* delete */
+
+.service-detail__delete-btn {
+  display: block;
+  width: 100%;
+  margin-top: 32px;
+  padding: 11px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  background: transparent;
+  border: 1px solid var(--danger-dim);
+  border-radius: 6px;
+  color: var(--danger);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.service-detail__delete-btn:hover {
+  background: var(--danger-dim);
+}
+
+/* modals */
 
 .logs-overlay {
   position: fixed;
@@ -206,9 +287,10 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px;
+  padding: 12px 14px;
   border-bottom: 1px solid var(--border-soft);
   flex-shrink: 0;
+  gap: 10px;
 }
 
 .logs-modal__title {
@@ -220,16 +302,53 @@
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-faint);
+  min-width: 0;
+  flex: 1;
+}
+
+.logs-modal__controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* simple / full toggle */
+
+.log-mode-toggle {
+  display: flex;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.log-mode-btn {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  padding: 4px 9px;
+  background: transparent;
+  border: none;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+
+.log-mode-btn--active {
+  background: var(--panel);
+  color: var(--text);
 }
 
 .logs-modal__close {
   background: transparent;
   border: 1px solid var(--border);
   color: var(--text-dim);
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  font-size: 12px;
+  width: 26px;
+  height: 26px;
+  border-radius: 5px;
+  font-size: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -244,7 +363,7 @@
 .logs-modal__body {
   flex: 1;
   overflow-y: auto;
-  padding: 12px 16px 24px;
+  padding: 12px 14px 24px;
 }
 
 .logs-modal__body--live {
@@ -272,7 +391,7 @@
   word-break: break-all;
 }
 
-/* live log lines */
+/* live */
 
 .live-indicator {
   width: 6px;

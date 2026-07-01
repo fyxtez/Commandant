@@ -1,25 +1,23 @@
 import { Store } from "@tauri-apps/plugin-store";
-import type { HostConfig, ServiceEntry } from "./types";
+import type { Preset, ServiceEntry } from "./types";
 
 export const MAX_LOG_ENTRIES = 20;
 
 let storePromise: Promise<Store> | null = null;
 
 function getStore(): Promise<Store> {
-  if (!storePromise) {
-    storePromise = Store.load("commandant.json");
-  }
+  if (!storePromise) storePromise = Store.load("commandant.json");
   return storePromise;
 }
 
-export async function loadHostConfig(): Promise<HostConfig | null> {
+export async function loadPresets(): Promise<Preset[]> {
   const store = await getStore();
-  return (await store.get<HostConfig>("host_config")) ?? null;
+  return (await store.get<Preset[]>("presets")) ?? [];
 }
 
-export async function saveHostConfig(config: HostConfig): Promise<void> {
+export async function savePresets(presets: Preset[]): Promise<void> {
   const store = await getStore();
-  await store.set("host_config", config);
+  await store.set("presets", presets);
   await store.save();
 }
 
@@ -32,4 +30,22 @@ export async function saveServices(services: ServiceEntry[]): Promise<void> {
   const store = await getStore();
   await store.set("services", services);
   await store.save();
+}
+
+// One-time migration: convert old single host_config → a "Default" preset.
+export async function migrateHostConfig(): Promise<void> {
+  const store = await getStore();
+  const old = await store.get<any>("host_config");
+  if (!old) return;
+  const existing = await loadPresets();
+  if (existing.length > 0) return; // already migrated
+  const preset: Preset = {
+    id: crypto.randomUUID(),
+    name: "Default",
+    host: old.host ?? "",
+    port: old.port ?? 22,
+    username: old.username ?? "root",
+    private_key: old.private_key ?? "",
+  };
+  await savePresets([preset]);
 }

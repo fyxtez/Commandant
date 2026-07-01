@@ -4,10 +4,88 @@
   padding: 20px 16px;
 }
 
+.add-service__no-hosts {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--panel);
+  border: 1px solid var(--danger-dim);
+  border-radius: 6px;
+  padding: 10px 14px;
+  gap: 12px;
+}
+
+.add-service__no-hosts-text {
+  margin: 0;
+  font-size: 12px;
+  color: var(--danger);
+}
+
+.add-service__open-hosts-btn {
+  background: transparent;
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-dim);
+  padding: 6px 12px;
+  border-radius: 5px;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.add-service__open-hosts-btn:hover {
+  border-color: var(--signal-dim);
+  color: var(--signal);
+}
+
+.add-service__presets {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.add-service__preset-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  text-align: left;
+}
+
+.add-service__preset-btn:hover {
+  border-color: var(--text-faint);
+}
+
+.add-service__preset-btn--active {
+  border-color: var(--signal);
+  background: var(--signal-dim);
+}
+
+.add-service__preset-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.add-service__preset-host {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
 .add-service__actions {
   display: flex;
   gap: 10px;
-  margin-top: 8px;
+  margin-top: 16px;
 }
 
 .add-service__actions .btn {

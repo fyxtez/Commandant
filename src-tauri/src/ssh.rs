@@ -38,7 +38,6 @@ impl client::Handler for ClientHandler {
     }
 }
 
-/// Connects, runs one command, captures output, disconnects.
 pub async fn run_systemctl_command(
     host: &str,
     port: u16,
@@ -70,10 +69,13 @@ pub async fn run_systemctl_command(
         return Err(SshError::AuthFailed);
     }
 
-    let command = if action == "logs" {
-        format!("journalctl -u {} -n 100 --no-pager", shell_quote(unit_name))
-    } else {
-        format!("systemctl {} {}", action, shell_quote(unit_name))
+    let command = match action {
+        "logs" => format!(
+            "journalctl -u {} -n 100 --no-pager",
+            shell_quote(unit_name)
+        ),
+        "is-active" => format!("systemctl is-active {}", shell_quote(unit_name)),
+        _ => format!("systemctl {} {}", action, shell_quote(unit_name)),
     };
 
     let mut channel = session
@@ -123,8 +125,6 @@ pub async fn run_systemctl_command(
     })
 }
 
-/// Connects and streams `journalctl -f` output line by line, emitting each
-/// line via `emit_line`. Runs until `stop_rx` fires or the SSH channel closes.
 pub async fn stream_journalctl(
     host: &str,
     port: u16,
@@ -172,27 +172,20 @@ pub async fn stream_journalctl(
         .await
         .map_err(|e| SshError::Channel(e.to_string()))?;
 
-    // Buffer incomplete lines across chunks
     let mut buf = String::new();
 
     loop {
         tokio::select! {
-            // Stop signal from the frontend
-            _ = &mut stop_rx => {
-                break;
-            }
+            _ = &mut stop_rx => break,
             msg = channel.wait() => {
                 match msg {
                     Some(ChannelMsg::Data { data }) => {
                         let chunk = String::from_utf8_lossy(&data);
                         buf.push_str(&chunk);
-                        // Emit each complete line
                         while let Some(pos) = buf.find('\n') {
                             let line = buf[..pos].to_string();
                             buf = buf[pos + 1..].to_string();
-                            if !line.is_empty() {
-                                emit_line(line);
-                            }
+                            if !line.is_empty() { emit_line(line); }
                         }
                     }
                     Some(ChannelMsg::Close) | None => break,

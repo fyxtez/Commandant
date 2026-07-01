@@ -1,0 +1,106 @@
+.presets {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.presets__scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px;
+}
+
+.presets__back {
+  margin-bottom: 18px;
+}
+
+.presets__empty {
+  margin: 40px 0 16px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-faint);
+}
+
+/* preset card */
+
+.preset-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 13px 14px;
+  margin-bottom: 10px;
+  transition: border-color 0.15s;
+}
+
+.preset-card:hover {
+  border-color: var(--text-faint);
+}
+
+.preset-card__info {
+  flex: 1;
+  min-width: 0;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.preset-card__name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.preset-card__host {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.preset-card__delete {
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-faint);
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  font-size: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.preset-card__delete:hover {
+  color: var(--danger);
+  border-color: var(--danger-dim);
+}
+
+/* add card */
+
+.presets__add-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-top: 4px;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-faint);
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.presets__add-card:hover {
+  border-color: var(--signal-dim);
+  color: var(--signal);
+}
