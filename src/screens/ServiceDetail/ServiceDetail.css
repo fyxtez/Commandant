@@ -38,7 +38,7 @@
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 8px;
-  margin-bottom: 26px;
+  margin-bottom: 10px;
 }
 
 .action-btn {
@@ -72,28 +72,74 @@
   font-size: 16px;
 }
 
-.action-btn--start {
-  color: var(--ok);
-}
+.action-btn--start { color: var(--ok); }
 .action-btn--start:hover:not(:disabled) {
   border-color: var(--ok-dim);
   background: var(--ok-dim);
 }
 
-.action-btn--stop {
-  color: var(--danger);
-}
+.action-btn--stop { color: var(--danger); }
 .action-btn--stop:hover:not(:disabled) {
   border-color: var(--danger-dim);
   background: var(--danger-dim);
 }
 
-.action-btn--restart {
-  color: var(--signal);
-}
+.action-btn--restart { color: var(--signal); }
 .action-btn--restart:hover:not(:disabled) {
   border-color: var(--signal-dim);
   background: var(--signal-dim);
+}
+
+/* log buttons row */
+
+.log-btn-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.logs-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 10px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: transparent;
+  border: 1px dashed var(--border);
+  border-radius: 6px;
+  color: var(--text-dim);
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.logs-btn:hover {
+  border-color: var(--signal-dim);
+  color: var(--signal);
+}
+
+.logs-btn--live:hover {
+  border-color: var(--ok-dim);
+  color: var(--ok);
+}
+
+.logs-btn__pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5);
+  animation: pulse-ring 1.8s ease-in-out infinite;
+}
+
+@keyframes pulse-ring {
+  0%   { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0.5); }
+  70%  { box-shadow: 0 0 0 5px rgba(74, 222, 128, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(74, 222, 128, 0); }
 }
 
 /* history */
@@ -135,34 +181,7 @@
   color: var(--text-faint);
 }
 
-.service-detail__log {
-  /* log entries handle their own borders */
-}
-
-/* logs button */
-
-.logs-btn {
-  width: 100%;
-  margin-bottom: 24px;
-  padding: 10px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 600;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  background: transparent;
-  border: 1px dashed var(--border);
-  border-radius: 6px;
-  color: var(--text-dim);
-  transition: border-color 0.15s, color 0.15s;
-}
-
-.logs-btn:hover {
-  border-color: var(--signal-dim);
-  color: var(--signal);
-}
-
-/* logs overlay + modal */
+/* shared modal styles */
 
 .logs-overlay {
   position: fixed;
@@ -175,7 +194,7 @@
 
 .logs-modal {
   width: 100%;
-  max-height: 75vh;
+  max-height: 80vh;
   background: var(--panel);
   border-top: 1px solid var(--border);
   border-radius: 14px 14px 0 0;
@@ -193,6 +212,9 @@
 }
 
 .logs-modal__title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 11px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -225,6 +247,11 @@
   padding: 12px 16px 24px;
 }
 
+.logs-modal__body--live {
+  display: flex;
+  flex-direction: column;
+}
+
 .logs-modal__status {
   font-size: 12px;
   color: var(--text-faint);
@@ -243,4 +270,31 @@
   color: var(--text-dim);
   white-space: pre-wrap;
   word-break: break-all;
+}
+
+/* live log lines */
+
+.live-indicator {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 5px var(--ok);
+  animation: pulse-ring 1.8s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.live-line {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.6;
+  color: var(--text-dim);
+  white-space: pre-wrap;
+  word-break: break-all;
+  border-bottom: 1px solid var(--border-soft);
+  padding: 3px 0;
+}
+
+.live-line:last-child {
+  border-bottom: none;
 }

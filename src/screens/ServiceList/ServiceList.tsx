@@ -12,21 +12,14 @@ export default function ServiceList({ services, onOpen, onAdd }: Props) {
   return (
     <div className="service-list">
       <div className="service-list__scroll">
-        {services.length === 0 ? (
-          <div className="service-list__empty">
-            No services yet.
-            <br />
-            Tap + to add the first one.
-          </div>
-        ) : (
-          services.map((s) => (
-            <ServiceCard key={s.id} service={s} onClick={() => onOpen(s.id)} />
-          ))
-        )}
+        {services.map((s) => (
+          <ServiceCard key={s.id} service={s} onClick={() => onOpen(s.id)} />
+        ))}
+        <button className="service-list__add-card" onClick={onAdd}>
+          <span className="service-list__add-icon">+</span>
+          Add new service
+        </button>
       </div>
-      <button className="service-list__fab" onClick={onAdd} aria-label="Add service">
-        +
-      </button>
     </div>
   );
 }

@@ -38,6 +38,7 @@ impl client::Handler for ClientHandler {
     }
 }
 
+/// Connects, runs one command, captures output, disconnects.
 pub async fn run_systemctl_command(
     host: &str,
     port: u16,
@@ -89,8 +90,6 @@ pub async fn run_systemctl_command(
     let mut stderr = Vec::new();
     let mut exit_code: Option<i32> = None;
 
-    // IMPORTANT: don't break on Eof — ExitStatus can arrive after Eof in some
-    // SSH implementations. Only break on Close or when the channel returns None.
     loop {
         match channel.wait().await {
             Some(ChannelMsg::Data { data }) => stdout.extend_from_slice(&data),
@@ -122,6 +121,89 @@ pub async fn run_systemctl_command(
         exit_code,
         message,
     })
+}
+
+/// Connects and streams `journalctl -f` output line by line, emitting each
+/// line via `emit_line`. Runs until `stop_rx` fires or the SSH channel closes.
+pub async fn stream_journalctl(
+    host: &str,
+    port: u16,
+    username: &str,
+    private_key_pem: &str,
+    unit_name: &str,
+    mut stop_rx: tokio::sync::oneshot::Receiver<()>,
+    emit_line: impl Fn(String) + Send + 'static,
+) -> Result<(), SshError> {
+    let key_pair = decode_secret_key(private_key_pem, None)
+        .map_err(|e| SshError::KeyParse(e.to_string()))?;
+
+    let config = Arc::new(client::Config {
+        inactivity_timeout: Some(Duration::from_secs(10)),
+        ..Default::default()
+    });
+
+    let mut session: Handle<ClientHandler> =
+        client::connect(config, (host, port), ClientHandler)
+            .await
+            .map_err(|e| SshError::Connect(e.to_string()))?;
+
+    let authenticated = session
+        .authenticate_publickey(username, Arc::new(key_pair))
+        .await
+        .map_err(|e| SshError::Connect(e.to_string()))?;
+
+    if !authenticated {
+        let _ = session.disconnect(Disconnect::ByApplication, "", "en").await;
+        return Err(SshError::AuthFailed);
+    }
+
+    let command = format!(
+        "journalctl -u {} -f -n 50 --no-pager",
+        shell_quote(unit_name)
+    );
+
+    let mut channel = session
+        .channel_open_session()
+        .await
+        .map_err(|e| SshError::Channel(e.to_string()))?;
+
+    channel
+        .exec(true, command.as_bytes())
+        .await
+        .map_err(|e| SshError::Channel(e.to_string()))?;
+
+    // Buffer incomplete lines across chunks
+    let mut buf = String::new();
+
+    loop {
+        tokio::select! {
+            // Stop signal from the frontend
+            _ = &mut stop_rx => {
+                break;
+            }
+            msg = channel.wait() => {
+                match msg {
+                    Some(ChannelMsg::Data { data }) => {
+                        let chunk = String::from_utf8_lossy(&data);
+                        buf.push_str(&chunk);
+                        // Emit each complete line
+                        while let Some(pos) = buf.find('\n') {
+                            let line = buf[..pos].to_string();
+                            buf = buf[pos + 1..].to_string();
+                            if !line.is_empty() {
+                                emit_line(line);
+                            }
+                        }
+                    }
+                    Some(ChannelMsg::Close) | None => break,
+                    _ => {}
+                }
+            }
+        }
+    }
+
+    let _ = session.disconnect(Disconnect::ByApplication, "", "en").await;
+    Ok(())
 }
 
 fn shell_quote(s: &str) -> String {

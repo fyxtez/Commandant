@@ -1,7 +1,9 @@
 mod ssh;
 
 use serde::{Deserialize, Serialize};
+use tauri::{Emitter, State};
 use tauri_plugin_store::StoreExt;
+use tokio::sync::Mutex;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 struct HostConfig {
@@ -18,7 +20,12 @@ struct RunActionResult {
     message: String,
 }
 
-/// Hard allow-list — the only three things this app can ever ask the host to do.
+/// Holds the sender side of the stop signal for the live log stream.
+/// Wrapped in Mutex so it can be shared across async commands.
+struct LiveLogState {
+    stop_tx: Mutex<Option<tokio::sync::oneshot::Sender<()>>>,
+}
+
 fn validate_action(action: &str) -> Result<&'static str, String> {
     match action {
         "start" => Ok("start"),
@@ -28,32 +35,25 @@ fn validate_action(action: &str) -> Result<&'static str, String> {
     }
 }
 
+fn load_host_config(app: &tauri::AppHandle) -> Result<HostConfig, String> {
+    let store = app.store("commandant.json").map_err(|e| e.to_string())?;
+    let value = store
+        .get("host_config")
+        .ok_or_else(|| "No host configured — open Settings first".to_string())?;
+    serde_json::from_value(value.clone()).map_err(|e| e.to_string())
+}
+
 #[tauri::command]
 async fn run_systemd_action(
     app: tauri::AppHandle,
     unit_name: String,
     action: String,
 ) -> Result<RunActionResult, String> {
-    // Validate action before touching anything else
     let action = validate_action(&action)?;
-
     if unit_name.trim().is_empty() {
         return Err("unit_name must not be empty".into());
     }
-
-    // Load host config from store
-    let store = app
-        .store("commandant.json")
-        .map_err(|e| e.to_string())?;
-
-    let config_value = store
-        .get("host_config")
-        .ok_or_else(|| "No host configured — open Settings first".to_string())?;
-
-    let config: HostConfig =
-        serde_json::from_value(config_value.clone()).map_err(|e| e.to_string())?;
-
-    // Run SSH command
+    let config = load_host_config(&app)?;
     let outcome = ssh::run_systemctl_command(
         &config.host,
         config.port,
@@ -72,7 +72,6 @@ async fn run_systemd_action(
     })
 }
 
-
 #[tauri::command]
 async fn fetch_service_logs(
     app: tauri::AppHandle,
@@ -81,18 +80,7 @@ async fn fetch_service_logs(
     if unit_name.trim().is_empty() {
         return Err("unit_name must not be empty".into());
     }
-
-    let store = app
-        .store("commandant.json")
-        .map_err(|e| e.to_string())?;
-
-    let config_value = store
-        .get("host_config")
-        .ok_or_else(|| "No host configured — open Settings first".to_string())?;
-
-    let config: HostConfig =
-        serde_json::from_value(config_value.clone()).map_err(|e| e.to_string())?;
-
+    let config = load_host_config(&app)?;
     let outcome = ssh::run_systemctl_command(
         &config.host,
         config.port,
@@ -107,11 +95,81 @@ async fn fetch_service_logs(
     Ok(outcome.message)
 }
 
+#[tauri::command]
+async fn start_live_logs(
+    app: tauri::AppHandle,
+    state: State<'_, LiveLogState>,
+    unit_name: String,
+) -> Result<(), String> {
+    if unit_name.trim().is_empty() {
+        return Err("unit_name must not be empty".into());
+    }
+
+    // Stop any existing stream first
+    {
+        let mut guard = state.stop_tx.lock().await;
+        if let Some(tx) = guard.take() {
+            let _ = tx.send(());
+        }
+    }
+
+    let config = load_host_config(&app)?;
+    let (stop_tx, stop_rx) = tokio::sync::oneshot::channel::<()>();
+
+    {
+        let mut guard = state.stop_tx.lock().await;
+        *guard = Some(stop_tx);
+    }
+
+    let app_clone = app.clone();
+
+    tokio::spawn(async move {
+        let result = ssh::stream_journalctl(
+            &config.host,
+            config.port,
+            &config.username,
+            &config.private_key,
+            &unit_name,
+            stop_rx,
+            move |line| {
+                let _ = app_clone.emit("live-log-line", line);
+            },
+        )
+        .await;
+
+        // Notify frontend the stream ended (error or stopped)
+        let msg = match result {
+            Ok(_) => "stopped".to_string(),
+            Err(e) => format!("error: {e}"),
+        };
+        let _ = app.emit("live-log-ended", msg);
+    });
+
+    Ok(())
+}
+
+#[tauri::command]
+async fn stop_live_logs(state: State<'_, LiveLogState>) -> Result<(), String> {
+    let mut guard = state.stop_tx.lock().await;
+    if let Some(tx) = guard.take() {
+        let _ = tx.send(());
+    }
+    Ok(())
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .manage(LiveLogState {
+            stop_tx: Mutex::new(None),
+        })
         .plugin(tauri_plugin_store::Builder::default().build())
-        .invoke_handler(tauri::generate_handler![run_systemd_action, fetch_service_logs])
+        .invoke_handler(tauri::generate_handler![
+            run_systemd_action,
+            fetch_service_logs,
+            start_live_logs,
+            stop_live_logs,
+        ])
         .run(tauri::generate_context!())
         .expect("error while running commandant");
 }

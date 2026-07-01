@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import Button from "../../components/Button/Button";
 import LogEntry from "../../components/LogEntry/LogEntry";
 import type { ActionKind, ActionLogEntry, ServiceEntry } from "../../types";
@@ -20,10 +21,39 @@ interface RunActionResult {
 
 export default function ServiceDetail({ service, onBack, onLogAppended, onClearHistory }: Props) {
   const [pending, setPending] = useState<ActionKind | null>(null);
+
+  // last 100 logs modal
   const [logsOpen, setLogsOpen] = useState(false);
   const [logsContent, setLogsContent] = useState<string | null>(null);
   const [logsLoading, setLogsLoading] = useState(false);
   const [logsError, setLogsError] = useState<string | null>(null);
+
+  // live logs modal
+  const [liveOpen, setLiveOpen] = useState(false);
+  const [liveLines, setLiveLines] = useState<string[]>([]);
+  const [liveRunning, setLiveRunning] = useState(false);
+  const [liveError, setLiveError] = useState<string | null>(null);
+  const liveBottomRef = useRef<HTMLDivElement>(null);
+  const unlistenLine = useRef<UnlistenFn | null>(null);
+  const unlistenEnd = useRef<UnlistenFn | null>(null);
+
+  // Auto-scroll live log to bottom on new lines
+  useEffect(() => {
+    if (liveOpen) {
+      liveBottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [liveLines, liveOpen]);
+
+  // Clean up listeners when component unmounts
+  useEffect(() => {
+    return () => {
+      unlistenLine.current?.();
+      unlistenEnd.current?.();
+      if (liveRunning) {
+        invoke("stop_live_logs").catch(() => {});
+      }
+    };
+  }, []);
 
   async function runAction(action: ActionKind) {
     setPending(action);
@@ -83,6 +113,43 @@ export default function ServiceDetail({ service, onBack, onLogAppended, onClearH
     }
   }
 
+  async function openLiveLogs() {
+    setLiveOpen(true);
+    setLiveLines([]);
+    setLiveError(null);
+    setLiveRunning(true);
+
+    // Set up event listeners before starting the stream
+    unlistenLine.current = await listen<string>("live-log-line", (event) => {
+      setLiveLines((prev) => [...prev.slice(-500), event.payload]);
+    });
+
+    unlistenEnd.current = await listen<string>("live-log-ended", (event) => {
+      setLiveRunning(false);
+      if (event.payload.startsWith("error:")) {
+        setLiveError(event.payload);
+      }
+    });
+
+    try {
+      await invoke("start_live_logs", { unitName: service.unit_name });
+    } catch (err) {
+      setLiveError(String(err));
+      setLiveRunning(false);
+    }
+  }
+
+  async function closeLiveLogs() {
+    await invoke("stop_live_logs").catch(() => {});
+    unlistenLine.current?.();
+    unlistenEnd.current?.();
+    unlistenLine.current = null;
+    unlistenEnd.current = null;
+    setLiveRunning(false);
+    setLiveOpen(false);
+    setLiveLines([]);
+  }
+
   const reversedLog = [...service.log].reverse();
 
   return (
@@ -124,9 +191,15 @@ export default function ServiceDetail({ service, onBack, onLogAppended, onClearH
           </button>
         </div>
 
-        <button className="logs-btn" onClick={openLogs}>
-          Last 100 logs
-        </button>
+        <div className="log-btn-row">
+          <button className="logs-btn" onClick={openLogs}>
+            Last 100 logs
+          </button>
+          <button className="logs-btn logs-btn--live" onClick={openLiveLogs}>
+            <span className="logs-btn__pulse" />
+            Live logs
+          </button>
+        </div>
 
         <div className="service-detail__history-header">
           <p className="service-detail__section-title">History</p>
@@ -148,6 +221,7 @@ export default function ServiceDetail({ service, onBack, onLogAppended, onClearH
         )}
       </div>
 
+      {/* Last 100 logs modal */}
       {logsOpen && (
         <div className="logs-overlay" onClick={() => setLogsOpen(false)}>
           <div className="logs-modal" onClick={(e) => e.stopPropagation()}>
@@ -160,15 +234,42 @@ export default function ServiceDetail({ service, onBack, onLogAppended, onClearH
               </button>
             </div>
             <div className="logs-modal__body">
-              {logsLoading && (
-                <p className="logs-modal__status">Fetching…</p>
-              )}
+              {logsLoading && <p className="logs-modal__status">Fetching…</p>}
               {logsError && (
                 <p className="logs-modal__status logs-modal__status--error">{logsError}</p>
               )}
               {logsContent && (
                 <pre className="logs-modal__pre">{logsContent}</pre>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Live logs modal */}
+      {liveOpen && (
+        <div className="logs-overlay">
+          <div className="logs-modal" onClick={(e) => e.stopPropagation()}>
+            <div className="logs-modal__header">
+              <span className="logs-modal__title">
+                {liveRunning && <span className="live-indicator" />}
+                live · {service.unit_name}
+              </span>
+              <button className="logs-modal__close" onClick={closeLiveLogs}>
+                ✕
+              </button>
+            </div>
+            <div className="logs-modal__body logs-modal__body--live">
+              {liveLines.length === 0 && !liveError && (
+                <p className="logs-modal__status">Connecting…</p>
+              )}
+              {liveError && (
+                <p className="logs-modal__status logs-modal__status--error">{liveError}</p>
+              )}
+              {liveLines.map((line, i) => (
+                <div key={i} className="live-line">{line}</div>
+              ))}
+              <div ref={liveBottomRef} />
             </div>
           </div>
         </div>
