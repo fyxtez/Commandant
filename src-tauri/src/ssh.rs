@@ -46,18 +46,17 @@ pub async fn run_systemctl_command(
     unit_name: &str,
     action: &str,
 ) -> Result<ActionOutcome, SshError> {
-    let key_pair = decode_secret_key(private_key_pem, None)
-        .map_err(|e| SshError::KeyParse(e.to_string()))?;
+    let key_pair =
+        decode_secret_key(private_key_pem, None).map_err(|e| SshError::KeyParse(e.to_string()))?;
 
     let config = Arc::new(client::Config {
         inactivity_timeout: Some(Duration::from_secs(10)),
         ..Default::default()
     });
 
-    let mut session: Handle<ClientHandler> =
-        client::connect(config, (host, port), ClientHandler)
-            .await
-            .map_err(|e| SshError::Connect(e.to_string()))?;
+    let mut session: Handle<ClientHandler> = client::connect(config, (host, port), ClientHandler)
+        .await
+        .map_err(|e| SshError::Connect(e.to_string()))?;
 
     let authenticated = session
         .authenticate_publickey(username, Arc::new(key_pair))
@@ -65,15 +64,14 @@ pub async fn run_systemctl_command(
         .map_err(|e| SshError::Connect(e.to_string()))?;
 
     if !authenticated {
-        let _ = session.disconnect(Disconnect::ByApplication, "", "en").await;
+        let _ = session
+            .disconnect(Disconnect::ByApplication, "", "en")
+            .await;
         return Err(SshError::AuthFailed);
     }
 
     let command = match action {
-        "logs" => format!(
-            "journalctl -u {} -n 100 --no-pager",
-            shell_quote(unit_name)
-        ),
+        "logs" => format!("journalctl -u {} -n 100 --no-pager", shell_quote(unit_name)),
         "is-active" => format!("systemctl is-active {}", shell_quote(unit_name)),
         _ => format!("systemctl {} {}", action, shell_quote(unit_name)),
     };
@@ -104,7 +102,9 @@ pub async fn run_systemctl_command(
         }
     }
 
-    let _ = session.disconnect(Disconnect::ByApplication, "", "en").await;
+    let _ = session
+        .disconnect(Disconnect::ByApplication, "", "en")
+        .await;
 
     let success = exit_code == Some(0);
     let message = if success {
@@ -134,18 +134,17 @@ pub async fn stream_journalctl(
     mut stop_rx: tokio::sync::oneshot::Receiver<()>,
     emit_line: impl Fn(String) + Send + 'static,
 ) -> Result<(), SshError> {
-    let key_pair = decode_secret_key(private_key_pem, None)
-        .map_err(|e| SshError::KeyParse(e.to_string()))?;
+    let key_pair =
+        decode_secret_key(private_key_pem, None).map_err(|e| SshError::KeyParse(e.to_string()))?;
 
     let config = Arc::new(client::Config {
         inactivity_timeout: Some(Duration::from_secs(10)),
         ..Default::default()
     });
 
-    let mut session: Handle<ClientHandler> =
-        client::connect(config, (host, port), ClientHandler)
-            .await
-            .map_err(|e| SshError::Connect(e.to_string()))?;
+    let mut session: Handle<ClientHandler> = client::connect(config, (host, port), ClientHandler)
+        .await
+        .map_err(|e| SshError::Connect(e.to_string()))?;
 
     let authenticated = session
         .authenticate_publickey(username, Arc::new(key_pair))
@@ -153,7 +152,9 @@ pub async fn stream_journalctl(
         .map_err(|e| SshError::Connect(e.to_string()))?;
 
     if !authenticated {
-        let _ = session.disconnect(Disconnect::ByApplication, "", "en").await;
+        let _ = session
+            .disconnect(Disconnect::ByApplication, "", "en")
+            .await;
         return Err(SshError::AuthFailed);
     }
 
@@ -195,7 +196,9 @@ pub async fn stream_journalctl(
         }
     }
 
-    let _ = session.disconnect(Disconnect::ByApplication, "", "en").await;
+    let _ = session
+        .disconnect(Disconnect::ByApplication, "", "en")
+        .await;
     Ok(())
 }
 

@@ -40,8 +40,7 @@ fn load_preset_by_id(app: &tauri::AppHandle, preset_id: &str) -> Result<Preset, 
     let value = store
         .get("presets")
         .ok_or_else(|| "No presets configured — add a preset first".to_string())?;
-    let presets: Vec<Preset> =
-        serde_json::from_value(value.clone()).map_err(|e| e.to_string())?;
+    let presets: Vec<Preset> = serde_json::from_value(value.clone()).map_err(|e| e.to_string())?;
     presets
         .into_iter()
         .find(|p| p.id == preset_id)
