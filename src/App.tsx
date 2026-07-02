@@ -162,7 +162,7 @@ export default function App() {
 
   const topBarTitle =
     route.name === "presets"
-      ? "Presets"
+      ? "HOSTS"
       : route.name === "preset_form"
       ? editingPreset
         ? "Edit Preset"
