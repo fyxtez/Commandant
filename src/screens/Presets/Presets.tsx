@@ -1,9 +1,9 @@
 import Button from "../../components/Button/Button";
-import type { Preset } from "../../types";
+import type { HostConfig } from "../../types";
 import "./Presets.css";
 
 interface Props {
-  presets: Preset[];
+  presets: HostConfig[];
   onAdd: () => void;
   onEdit: (id: string) => void;
   onDelete: (id: string) => void;

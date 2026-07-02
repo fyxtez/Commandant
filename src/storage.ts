@@ -1,5 +1,5 @@
 import { Store } from "@tauri-apps/plugin-store";
-import type { Preset, ServiceEntry } from "./types";
+import type { HostConfig, ServiceEntry } from "./types";
 
 export const MAX_LOG_ENTRIES = 20;
 
@@ -10,12 +10,12 @@ function getStore(): Promise<Store> {
   return storePromise;
 }
 
-export async function loadPresets(): Promise<Preset[]> {
+export async function loadHostConfig(): Promise<HostConfig[]> {
   const store = await getStore();
-  return (await store.get<Preset[]>("presets")) ?? [];
+  return (await store.get<HostConfig[]>("presets")) ?? [];
 }
 
-export async function savePresets(presets: Preset[]): Promise<void> {
+export async function saveHostConfig(presets: HostConfig[]): Promise<void> {
   const store = await getStore();
   await store.set("presets", presets);
   await store.save();
@@ -37,9 +37,9 @@ export async function migrateHostConfig(): Promise<void> {
   const store = await getStore();
   const old = await store.get<any>("host_config");
   if (!old) return;
-  const existing = await loadPresets();
+  const existing = await loadHostConfig();
   if (existing.length > 0) return; // already migrated
-  const preset: Preset = {
+  const preset: HostConfig = {
     id: crypto.randomUUID(),
     name: "Default",
     host: old.host ?? "",
@@ -47,5 +47,5 @@ export async function migrateHostConfig(): Promise<void> {
     username: old.username ?? "root",
     private_key: old.private_key ?? "",
   };
-  await savePresets([preset]);
+  await saveHostConfig([preset]);
 }

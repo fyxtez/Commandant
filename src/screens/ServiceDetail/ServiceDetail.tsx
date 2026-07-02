@@ -3,12 +3,12 @@ import { invoke } from "@tauri-apps/api/core";
 import { listen, type UnlistenFn } from "@tauri-apps/api/event";
 import Button from "../../components/Button/Button";
 import LogEntry from "../../components/LogEntry/LogEntry";
-import type { ActionKind, ActionLogEntry, Preset, ServiceEntry } from "../../types";
+import type { ActionKind, ActionLogEntry, HostConfig, ServiceEntry } from "../../types";
 import "./ServiceDetail.css";
 
 interface Props {
   service: ServiceEntry;
-  preset: Preset | null;
+  preset: HostConfig | null;
   isActive: boolean | null;
   onBack: () => void;
   onLogAppended: (entry: ActionLogEntry) => void;

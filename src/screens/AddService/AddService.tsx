@@ -1,11 +1,11 @@
 import { useState } from "react";
 import Field from "../../components/Field/Field";
 import Button from "../../components/Button/Button";
-import type { Preset } from "../../types";
+import type { HostConfig } from "../../types";
 import "./AddService.css";
 
 interface Props {
-  presets: Preset[];
+  presets: HostConfig[];
   onCancel: () => void;
   onSave: (label: string, unitName: string, presetId: string) => void;
   onOpenHosts: () => void;

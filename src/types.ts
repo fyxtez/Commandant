@@ -1,4 +1,4 @@
-export interface Preset {
+export interface HostConfig {
   id: string;
   name: string;
   host: string;

@@ -1,12 +1,12 @@
 import { useState } from "react";
 import Field from "../../components/Field/Field";
 import Button from "../../components/Button/Button";
-import type { Preset } from "../../types";
+import type { HostConfig } from "../../types";
 import "./PresetForm.css";
 
 interface Props {
-  preset?: Preset;
-  onSave: (preset: Preset) => void;
+  preset?: HostConfig;
+  onSave: (preset: HostConfig) => void;
   onCancel: () => void;
 }
 

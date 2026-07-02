@@ -7,14 +7,14 @@ import ServiceList from "./screens/ServiceList/ServiceList";
 import AddService from "./screens/AddService/AddService";
 import ServiceDetail from "./screens/ServiceDetail/ServiceDetail";
 import {
-  loadPresets,
+  loadHostConfig,
   loadServices,
   migrateHostConfig,
-  savePresets,
+  saveHostConfig,
   saveServices,
   MAX_LOG_ENTRIES,
 } from "./storage";
-import type { ActionLogEntry, Preset, ServiceEntry } from "./types";
+import type { ActionLogEntry, HostConfig, ServiceEntry } from "./types";
 import "./App.css";
 
 type Route =
@@ -27,7 +27,7 @@ type Route =
 export default function App() {
   const [route, setRoute] = useState<Route>({ name: "list" });
   const [services, setServices] = useState<ServiceEntry[]>([]);
-  const [presets, setPresets] = useState<Preset[]>([]);
+  const [presets, setPresets] = useState<HostConfig[]>([]);
   const [activeStatus, setActiveStatus] = useState<Record<string, boolean | null>>({});
   const [loaded, setLoaded] = useState(false);
 
@@ -38,7 +38,7 @@ export default function App() {
   useEffect(() => {
     async function init() {
       await migrateHostConfig();
-      const [p, s] = await Promise.all([loadPresets(), loadServices()]);
+      const [p, s] = await Promise.all([loadHostConfig(), loadServices()]);
       setPresets(p);
       setServices(s);
       servicesRef.current = s;
@@ -80,12 +80,12 @@ export default function App() {
     await saveServices(next);
   }
 
-  async function persistPresets(next: Preset[]) {
+  async function persistPresets(next: HostConfig[]) {
     setPresets(next);
-    await savePresets(next);
+    await saveHostConfig(next);
   }
 
-  function handleSavePreset(preset: Preset) {
+  function handleSavePreset(preset: HostConfig) {
     const exists = presets.some((p) => p.id === preset.id);
     const next = exists
       ? presets.map((p) => (p.id === preset.id ? preset : p))
